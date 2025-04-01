@@ -45,8 +45,8 @@ func TestParser(t *testing.T) {
 		// to create your alerts.
 		// Example: Print dataset names
 		for _, ds := range ast.datasets {
-			fmt.Printf("  Dataset: %s\n", ds.name)
-			for _, crit := range ds.criteria {
+			fmt.Printf("  Dataset: %s\n", ds.Name)
+			for _, crit := range ds.Criteria {
 				fmt.Printf("    Criteria: %s\n", crit.name)
 				// ... traverse deeper ...
 			}

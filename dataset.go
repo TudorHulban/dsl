@@ -1,7 +1,7 @@
 package main
 
 type dataset struct {
-	name     string
-	criteria []*criteria
+	Name     string
+	Criteria []*criteria
 	// settings []setting // uncomment if settings can be defined at dataset level
 }
