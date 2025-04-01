@@ -7,23 +7,25 @@ import (
 	"text/scanner"
 )
 
-type lexer struct {
+type dslLexer struct {
 	s   scanner.Scanner
 	err error
 }
 
-func newlexer(r io.Reader) *lexer {
+func newlexer(r io.Reader) *dslLexer {
 	var s scanner.Scanner
 	s.Init(r)
 	s.Mode = scanner.ScanIdents | scanner.ScanFloats | scanner.ScanStrings | scanner.ScanChars | scanner.ScanComments
+
 	// customize scanner if needed, e.g., operators
 	s.IsIdentRune = func(ch rune, i int) bool {
 		return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_') || (i > 0 && ch >= '0' && ch <= '9')
 	}
-	return &lexer{s: s}
+
+	return &dslLexer{s: s}
 }
 
-func (l *lexer) nexttoken() token {
+func (l *dslLexer) nextToken() token {
 	if l.err != nil {
 		return token{typ: tokenerror, lit: l.err.Error()}
 	}

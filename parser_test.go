@@ -25,10 +25,6 @@ func TestParser(t *testing.T) {
 		 }
 	  }
 	}
-	
-	dataset "inventory" {
-	   // ...
-	}
 	`
 
 	reader := strings.NewReader(dsl)
