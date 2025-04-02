@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 )
 
 // Parser holds the state of the parsing process.
@@ -61,10 +60,16 @@ func (p *Parser) errorf(format string, args ...any) {
 func (p *Parser) expect(t tokenKind) bool {
 	if p.tokenCurrent.kind == t {
 		p.advanceToken()
+
 		return true
 	}
 
-	p.errorf("expected token %v, got %v (%s)", t, p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
+	p.errorf(
+		"expected token %v, got %v (%s)",
+		t,
+		p.tokenCurrent.kind,
+		p.tokenCurrent.valueLiteral,
+	)
 
 	return false
 }
@@ -73,79 +78,85 @@ func (p *Parser) expect(t tokenKind) bool {
 func (p *Parser) expectIdentifier(ident string) bool {
 	if p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == ident {
 		p.advanceToken()
+
 		return true
 	}
 
-	p.errorf("expected identifier '%s', got %v (%s)", ident, p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
+	p.errorf(
+		"expected identifier '%s', got %v (%s)",
+		ident,
+		p.tokenCurrent.kind,
+		p.tokenCurrent.valueLiteral,
+	)
 
 	return false
 }
 
 // --- parsing functions (recursive descent) ---
 
-func (p *Parser) parseDataset() *dataset {
-	// 1. Verify 'dataset' keyword
-	if !p.expectIdentifier("dataset") {
-		p.errorf("expected 'dataset' keyword")
+// func (p *Parser) parseDataset() *dataset {
+// 	// 1. Verify 'dataset' keyword
+// 	if !p.expectIdentifier("dataset") {
+// 		p.errorf("expected 'dataset' keyword")
 
-		return nil
-	}
+// 		return nil
+// 	}
 
-	// 2. Get dataset name (string literal)
-	if p.tokenCurrent.kind != tokenStringLiteral {
-		p.errorf(
-			"expected dataset name string, got %v (%s)",
-			p.tokenCurrent.kind, p.tokenCurrent.valueLiteral,
-		)
+// 	// 2. Get dataset name (string literal)
+// 	if p.tokenCurrent.kind != tokenStringLiteral {
+// 		p.errorf(
+// 			"expected dataset name string, got %v (%s)",
+// 			p.tokenCurrent.kind, p.tokenCurrent.valueLiteral,
+// 		)
 
-		return nil
-	}
+// 		return nil
+// 	}
 
-	ds := dataset{
-		Name: strings.Trim(p.tokenCurrent.valueLiteral, `"`), // Remove quotes
-	}
-	p.advanceToken()
+// 	ds := dataset{
+// 		Name: strings.Trim(p.tokenCurrent.valueLiteral, `"`), // Remove quotes
+// 	}
+// 	p.advanceToken()
 
-	// 3. Verify opening brace
-	if !p.expect(tokenLeftBrace) {
-		p.errorf("expected '{' after dataset name")
+// 	// 3. Verify opening brace
+// 	if !p.expect(tokenLeftBrace) {
+// 		p.errorf("expected '{' after dataset name")
 
-		return nil
-	}
+// 		return nil
+// 	}
 
-	// 4. Parse criteria inside dataset
-	for p.tokenCurrent.kind != tokenRightBrace && p.tokenCurrent.kind != tokenEOF {
-		switch {
-		case p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "criteria":
-			crit := p.parseCriteria()
-			if crit != nil {
-				ds.Criteria = append(ds.Criteria, crit)
-			} else {
-				p.skiptoidentorbrace("criteria") // Error recovery
-			}
+// 	// 4. Parse criteria inside dataset
+// 	for p.tokenCurrent.kind != tokenRightBrace && p.tokenCurrent.kind != tokenEOF {
+// 		switch {
+// 		case p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "criteria":
+// 			crit := p.parseCriteria()
+// 			if crit != nil {
+// 				ds.Criteria = append(ds.Criteria, crit)
+// 			} else {
+// 				p.skiptoidentorbrace("criteria") // Error recovery
+// 			}
 
-		default:
-			p.errorf(
-				"unexpected token in dataset block: %v (%s)",
-				p.tokenCurrent.kind, p.tokenCurrent.valueLiteral,
-			)
+// 		default:
+// 			p.errorf(
+// 				"unexpected token in dataset block: %v (%s)",
+// 				p.tokenCurrent.kind, p.tokenCurrent.valueLiteral,
+// 			)
 
-			p.advanceToken()
-		}
-	}
+// 			p.advanceToken()
+// 		}
+// 	}
 
-	// 5. Verify closing brace
-	if !p.expect(tokenRightBrace) {
-		p.errorf("dataset block not properly closed")
+// 	// 5. Verify closing brace
+// 	if !p.expect(tokenRightBrace) {
+// 		p.errorf("dataset block not properly closed")
 
-		return nil
-	}
+// 		return nil
+// 	}
 
-	return &ds
-}
+// 	return &ds
+// }
 
-func (p *Parser) parserEntrypoint() *program {
-	var prog program
+func (p *Parser) parserEntrypoint() *AlertConfiguration {
+	var result AlertConfiguration
 
 	// Keep processing until EOF or error
 	for {
@@ -154,14 +165,14 @@ func (p *Parser) parserEntrypoint() *program {
 			break
 		}
 
-		// Process dataset declarations
-		if p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "dataset" {
-			// Parse the dataset
-			ds := p.parseDataset()
-			if ds != nil {
-				prog.datasets = append(prog.datasets, ds)
+		if p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == _dslCriteria {
+			criteria := p.parseCriteria()
+			if criteria != nil {
+				result.Criterias = append(result.Criterias, criteria)
+
 				continue // Successfully parsed, move to next token
 			}
+
 			// If we get here, parsing failed - skip to next potential dataset
 			p.skipToIdentifier("dataset")
 			continue
@@ -169,9 +180,13 @@ func (p *Parser) parserEntrypoint() *program {
 
 		// Unexpected token - attempt recovery
 		if p.tokenCurrent.kind != tokenEOF {
-			p.errorf("unexpected token at program root: %v (%s)",
-				p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
-			p.skipToIdentifier("dataset")
+			p.errorf(
+				"unexpected token at program root: %v (%s)",
+				p.tokenCurrent.kind,
+				p.tokenCurrent.valueLiteral,
+			)
+
+			p.skipToIdentifier(_dslCriteria)
 			continue
 		}
 
@@ -179,11 +194,12 @@ func (p *Parser) parserEntrypoint() *program {
 		p.advanceToken()
 	}
 
-	return &prog
+	return &result
 }
 
-func (p *Parser) parseCriteria() *criteria {
-	crit := &criteria{}
+func (p *Parser) parseCriteria() *Criteria {
+	var result Criteria
+
 	if !p.expectIdentifier("criteria") {
 		return nil
 	}
@@ -192,7 +208,8 @@ func (p *Parser) parseCriteria() *criteria {
 		p.errorf("expected criteria name string, got %v", p.tokenCurrent.kind)
 		return nil
 	}
-	crit.name = p.tokenCurrent.valueLiteral
+
+	result.Name = p.tokenCurrent.valueLiteral
 	p.advanceToken()
 
 	if !p.expect(tokenLeftBrace) {
@@ -204,24 +221,24 @@ func (p *Parser) parseCriteria() *criteria {
 		case p.tokenCurrent.kind == tokenIdentifier && (p.tokenCurrent.valueLiteral == "baseline" || p.tokenCurrent.valueLiteral == "increment"):
 			sett := p.parseSetting()
 			if sett != nil {
-				crit.settings = append(crit.settings, sett)
+				result.Settings = append(result.Settings, sett)
 			} else {
 				// error recovery: skip to next setting/monitor or '}'
-				p.skiptoidentorbrace("baseline", "increment", "monitor")
+				p.skipToIdentifierRightBrace("baseline", "increment", "monitor")
 			}
 
 		case p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "monitor":
 			mon := p.parseMonitor()
 			if mon != nil {
-				crit.monitors = append(crit.monitors, mon)
+				result.Monitors = append(result.Monitors, mon)
 			} else {
 				// error recovery: skip to next setting/monitor or '}'
-				p.skiptoidentorbrace("baseline", "increment", "monitor")
+				p.skipToIdentifierRightBrace("baseline", "increment", "monitor")
 			}
 
 		default:
 			p.errorf("unexpected token inside criteria block: %v (%s)", p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
-			p.skiptoidentorbrace("baseline", "increment", "monitor")
+			p.skipToIdentifierRightBrace("baseline", "increment", "monitor")
 		}
 	}
 
@@ -232,27 +249,28 @@ func (p *Parser) parseCriteria() *criteria {
 		}
 	}
 
-	return crit
+	return &result
 }
 
-func (p *Parser) parseSetting() *setting {
-	sett := &setting{}
-	sett.kind = p.tokenCurrent.valueLiteral // "baseline" or "increment"
+func (p *Parser) parseSetting() *Setting {
+	var result Setting
+
+	result.Kind = p.tokenCurrent.valueLiteral // "baseline" or "increment"
 	p.advanceToken()
 
 	if p.tokenCurrent.kind != tokenIdentifier {
 		p.errorf("expected setting name identifier, got %v", p.tokenCurrent.kind)
 		return nil
 	}
-	sett.name = p.tokenCurrent.valueLiteral
+	result.Name = p.tokenCurrent.valueLiteral
 	p.advanceToken()
 
 	if !p.expect(tokenAssign) {
 		return nil
 	}
 
-	sett.value = p.parseExpression(0) // parse the value expression
-	if sett.value == nil {
+	result.Value = p.parseExpression(0) // parse the value expression
+	if result.Value == nil {
 		p.errorf("invalid setting value expression")
 		return nil
 	}
@@ -260,11 +278,13 @@ func (p *Parser) parseSetting() *setting {
 	if !p.expect(tokenSemicolon) {
 		return nil
 	}
-	return sett
+
+	return &result
 }
 
-func (p *Parser) parseMonitor() *monitor {
-	mon := &monitor{}
+func (p *Parser) parseMonitor() *Monitor {
+	var result Monitor
+
 	if !p.expectIdentifier("monitor") {
 		return nil
 	}
@@ -273,7 +293,9 @@ func (p *Parser) parseMonitor() *monitor {
 		p.errorf("expected monitor column name string, got %v", p.tokenCurrent.kind)
 		return nil
 	}
-	mon.columnname = p.tokenCurrent.valueLiteral
+
+	result.ColumnName = p.tokenCurrent.valueLiteral
+
 	p.advanceToken()
 
 	if !p.expect(tokenLeftBrace) {
@@ -284,14 +306,14 @@ func (p *Parser) parseMonitor() *monitor {
 		if p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "level" {
 			r := p.parseRule()
 			if r != nil {
-				mon.rules = append(mon.rules, r)
+				result.Rules = append(result.Rules, r)
 			} else {
 				// error recovery: skip to next rule or '}'
-				p.skiptoidentorbrace("level")
+				p.skipToIdentifierRightBrace("level")
 			}
 		} else {
 			p.errorf("unexpected token inside monitor block: %v (%s)", p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
-			p.skiptoidentorbrace("level")
+			p.skipToIdentifierRightBrace("level")
 		}
 	}
 
@@ -301,11 +323,13 @@ func (p *Parser) parseMonitor() *monitor {
 			p.advanceToken()
 		}
 	}
-	return mon
+
+	return &result
 }
 
-func (p *Parser) parseRule() *rule {
-	r := &rule{}
+func (p *Parser) parseRule() *Rule {
+	var result Rule
+
 	if !p.expectIdentifier("level") {
 		return nil
 	}
@@ -319,15 +343,17 @@ func (p *Parser) parseRule() *rule {
 		p.errorf("invalid level number '%s': %v", p.tokenCurrent.valueLiteral, err)
 		return nil
 	}
-	r.level = level
+
+	result.Level = level
+
 	p.advanceToken()
 
 	if !p.expectIdentifier("when") {
 		return nil
 	}
 
-	r.condition = p.parseExpression(0) // parse the condition expression
-	if r.condition == nil {
+	result.Condition = p.parseExpression(0) // parse the condition expression
+	if result.Condition == nil {
 		p.errorf("invalid rule condition expression")
 		return nil
 	}
@@ -335,15 +361,16 @@ func (p *Parser) parseRule() *rule {
 	if !p.expect(tokenSemicolon) {
 		return nil
 	}
-	return r
+
+	return &result
 }
 
 // parseExpression - simplified placeholder for expression parsing
 // a real implementation needs operator precedence (e.g., Pratt parsing or shunting-yard)
-func (p *Parser) parseExpression(precedence int) expression {
+func (p *Parser) parseExpression(precedence int) Expression {
 	// very basic: handles literal or variable, optionally followed by operator and another term
 	// does not handle precedence or parentheses correctly!
-	var left expression
+	var left Expression
 
 	switch p.tokenCurrent.kind {
 	case tokenNumber:
@@ -361,21 +388,26 @@ func (p *Parser) parseExpression(precedence int) expression {
 				return nil
 			}
 		}
+
 		p.advanceToken()
 
 	case tokenIdentifier:
 		left = newvariable(p.tokenCurrent.valueLiteral)
+
 		p.advanceToken()
 
 	default:
 		p.errorf("unexpected token in expression: %v (%s)", p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
+
 		return nil
 	}
 
 	// look ahead for a binary operator (super simplified)
 	if p.tokenCurrent.kind == tokenOperator {
 		op := p.tokenCurrent.valueLiteral
+
 		p.advanceToken()
+
 		right := p.parseExpression(0) // recursive call (doesn't handle precedence)
 		if right == nil {
 			p.errorf("missing right hand side for operator %s", op)
@@ -416,14 +448,14 @@ func (p *Parser) skipToIdentifier(identifiers ...string) {
 	}
 }
 
-func (p *Parser) skiptoidentorbrace(idents ...string) {
+func (p *Parser) skipToIdentifierRightBrace(identifiers ...string) {
 	for p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
 		if p.tokenCurrent.kind == tokenRightBrace { // stop at closing brace
 			return
 		}
 
 		if p.tokenCurrent.kind == tokenIdentifier {
-			for _, id := range idents {
+			for _, id := range identifiers {
 				if p.tokenCurrent.valueLiteral == id {
 					return // found one of the target idents
 				}
@@ -438,13 +470,7 @@ func (p *Parser) currentTokenIs(t tokenKind) bool {
 	return p.tokenCurrent.kind == t
 }
 
-func (p *Parser) advance() {
-	p.tokenCurrent = p.tokenNext
-
-	p.tokenNext = p.lex.nextToken()
-}
-
-func parse(input io.Reader) (*program, []string) {
+func parse(input io.Reader) (*AlertConfiguration, []string) {
 	buf := make([]byte, 1)
 	n, err := input.Read(buf)
 	if n == 0 || err == io.EOF {

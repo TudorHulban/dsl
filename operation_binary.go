@@ -2,24 +2,24 @@ package main
 
 import "fmt"
 
-type exprBinary struct {
-	operator string     // operator (e.g., ">=", "<", "+", "==")
-	lhs      expression // left hand side
-	rhs      expression // right hand side
+type ExpressionBinary struct {
+	Operator      string // (e.g., ">=", "<", "+", "==")
+	LefthandSide  Expression
+	RighthandSide Expression
 }
 
-func (e *exprBinary) exprNode() {}
+func (e *ExpressionBinary) exprNode() {}
 
-func (e *exprBinary) string() string {
+func (e *ExpressionBinary) string() string {
 	return fmt.Sprintf(
 		"(%s %s %s)",
 
-		e.lhs.string(),
-		e.operator,
-		e.rhs.string(),
+		e.LefthandSide.string(),
+		e.Operator,
+		e.RighthandSide.string(),
 	)
 }
 
-func newbinaryexpr(lhs expression, op string, rhs expression) *exprBinary {
-	return &exprBinary{lhs: lhs, operator: op, rhs: rhs}
+func newbinaryexpr(lhs Expression, op string, rhs Expression) *ExpressionBinary {
+	return &ExpressionBinary{LefthandSide: lhs, Operator: op, RighthandSide: rhs}
 }

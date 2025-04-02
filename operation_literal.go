@@ -1,16 +1,19 @@
 package main
 
-type exprLiteral struct {
+type ExpressionLiteral struct {
 	value any    // use type assertion later (e.g., float64, string)
 	raw   string // original raw string representation
 }
 
-func (e *exprLiteral) exprNode() {}
+func (e *ExpressionLiteral) exprNode() {}
 
-func (e *exprLiteral) string() string {
+func (e *ExpressionLiteral) string() string {
 	return e.raw
 }
 
-func newliteral(value interface{}, raw string) *exprLiteral {
-	return &exprLiteral{value: value, raw: raw}
+func newliteral(value any, raw string) *ExpressionLiteral {
+	return &ExpressionLiteral{
+		value: value,
+		raw:   raw,
+	}
 }

@@ -1,6 +1,6 @@
 package main
 
-type expression interface {
+type Expression interface {
 	exprNode()
 	string() string
 }
