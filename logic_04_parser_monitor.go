@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func (p *Parser) parseMonitor() *Monitor {
 	var result Monitor
 
@@ -16,7 +14,7 @@ func (p *Parser) parseMonitor() *Monitor {
 	}
 
 	// 2. Monitor name (string)
-	if !p.expectWTokenAdvance(
+	if !p.expectNoTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseMonitor - 2",
 			KindExpected: tokenStringLiteral,
@@ -28,11 +26,6 @@ func (p *Parser) parseMonitor() *Monitor {
 	result.ColumnName = p.tokenCurrent.valueLiteral
 	p.advanceToken()
 
-	fmt.Println(
-		"xxxxxxxxxxxxxxxxxxxxxxxxxxx",
-		result.ColumnName,
-	)
-
 	// 3. Opening brace
 	if !p.expectWTokenAdvance(
 		&paramsExpect{
@@ -43,8 +36,14 @@ func (p *Parser) parseMonitor() *Monitor {
 		return nil
 	}
 
-	// 4. Body parsing (improved keyword detection)
-	for !p.currentTokenIs(tokenRightBrace) {
+	if p.currentTokenIs(tokenRightBrace) {
+		p.errorf("monitor must contain at least one level rule")
+
+		return nil
+	}
+
+	// 4. Body parsing with strict advancement control
+	for !p.currentTokenIs(tokenRightBrace) && !p.currentTokenIs(tokenEOF) {
 		switch {
 		case p.currentTokenIs(tokenLevel):
 			if r := p.parseRule(); r != nil {
@@ -52,27 +51,33 @@ func (p *Parser) parseMonitor() *Monitor {
 
 				continue
 			}
-			p.skipToIdentifierRightBrace(_dslLevel)
+			// Fallthrough to error handling if parseRule failed
 
 		default:
 			p.errorf(
-				"unexpected token in monitor: %v (%s)",
+				"parseMonitor - 4: unexpected token %v (%s)",
 				p.tokenCurrent.kind,
 				p.tokenCurrent.valueLiteral,
 			)
+		}
 
-			p.skipToIdentifierRightBrace(_dslLevel)
+		// Critical: ensure token advancement in all cases
+		if !p.currentTokenIs(tokenRightBrace) && !p.currentTokenIs(tokenEOF) {
+			p.advanceToken()
 		}
 	}
 
-	// 5. Closing brace
+	// 5. Closing brace validation
 	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseMonitor - 5",
 			KindExpected: tokenRightBrace,
 		},
 	) {
-		p.tryRecoverAtBlockEnd()
+		p.errorf(
+			"missing closing brace '}' for monitor '%s'",
+			result.ColumnName,
+		)
 
 		return nil
 	}
