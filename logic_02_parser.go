@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"strconv"
 )
 
@@ -49,24 +47,40 @@ func (p *Parser) logTokenState() {
 	}
 }
 
-// errorf records a parsing error.
 func (p *Parser) errorf(format string, args ...any) {
-	msg := fmt.Sprintf("parse error at %s: %s", p.tokenCurrent.pos, fmt.Sprintf(format, args...))
+	p.errors = append(
+		p.errors,
 
-	p.errors = append(p.errors, msg)
+		fmt.Sprintf(
+			"parse error at %s: %s",
+			p.tokenCurrent.pos,
+			fmt.Sprintf(format, args...),
+		),
+	)
 }
 
-// expect checks if the current token matches the expected type.
-func (p *Parser) expect(t tokenKind) bool {
-	if p.tokenCurrent.kind == t {
+func (p *Parser) tryRecoverAtBlockEnd() {
+	if !p.currentTokenIs(tokenRightBrace) && !p.currentTokenIs(tokenEOF) {
+		p.advanceToken()
+	}
+}
+
+type paramsExpect struct {
+	Caller       string
+	KindExpected tokenKind
+}
+
+func (p *Parser) expect(params *paramsExpect) bool {
+	if p.tokenCurrent.kind == params.KindExpected {
 		p.advanceToken()
 
 		return true
 	}
 
 	p.errorf(
-		"expected token %v, got %v (%s)",
-		t,
+		"Caller:%s\nExpected token %v, got %v (%s)",
+		params.Caller,
+		params.KindExpected,
 		p.tokenCurrent.kind,
 		p.tokenCurrent.valueLiteral,
 	)
@@ -92,75 +106,11 @@ func (p *Parser) expectIdentifier(ident string) bool {
 	return false
 }
 
-// --- parsing functions (recursive descent) ---
-
-// func (p *Parser) parseDataset() *dataset {
-// 	// 1. Verify 'dataset' keyword
-// 	if !p.expectIdentifier("dataset") {
-// 		p.errorf("expected 'dataset' keyword")
-
-// 		return nil
-// 	}
-
-// 	// 2. Get dataset name (string literal)
-// 	if p.tokenCurrent.kind != tokenStringLiteral {
-// 		p.errorf(
-// 			"expected dataset name string, got %v (%s)",
-// 			p.tokenCurrent.kind, p.tokenCurrent.valueLiteral,
-// 		)
-
-// 		return nil
-// 	}
-
-// 	ds := dataset{
-// 		Name: strings.Trim(p.tokenCurrent.valueLiteral, `"`), // Remove quotes
-// 	}
-// 	p.advanceToken()
-
-// 	// 3. Verify opening brace
-// 	if !p.expect(tokenLeftBrace) {
-// 		p.errorf("expected '{' after dataset name")
-
-// 		return nil
-// 	}
-
-// 	// 4. Parse criteria inside dataset
-// 	for p.tokenCurrent.kind != tokenRightBrace && p.tokenCurrent.kind != tokenEOF {
-// 		switch {
-// 		case p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "criteria":
-// 			crit := p.parseCriteria()
-// 			if crit != nil {
-// 				ds.Criteria = append(ds.Criteria, crit)
-// 			} else {
-// 				p.skiptoidentorbrace("criteria") // Error recovery
-// 			}
-
-// 		default:
-// 			p.errorf(
-// 				"unexpected token in dataset block: %v (%s)",
-// 				p.tokenCurrent.kind, p.tokenCurrent.valueLiteral,
-// 			)
-
-// 			p.advanceToken()
-// 		}
-// 	}
-
-// 	// 5. Verify closing brace
-// 	if !p.expect(tokenRightBrace) {
-// 		p.errorf("dataset block not properly closed")
-
-// 		return nil
-// 	}
-
-// 	return &ds
-// }
-
 func (p *Parser) parserEntrypoint() *AlertConfiguration {
 	var result AlertConfiguration
 
 	// Keep processing until EOF or error
 	for {
-		// Check for termination conditions first
 		if p.tokenCurrent.kind == tokenEOF || p.tokenCurrent.kind == tokenError {
 			break
 		}
@@ -204,13 +154,22 @@ func (p *Parser) parseSetting() *Setting {
 	p.advanceToken()
 
 	if p.tokenCurrent.kind != tokenIdentifier {
-		p.errorf("expected setting name identifier, got %v", p.tokenCurrent.kind)
+		p.errorf(
+			"expected setting name identifier, got %v",
+			p.tokenCurrent.kind,
+		)
+
 		return nil
 	}
 	result.Name = p.tokenCurrent.valueLiteral
 	p.advanceToken()
 
-	if !p.expect(tokenAssign) {
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseSetting - 1",
+			KindExpected: tokenAssign,
+		},
+	) {
 		return nil
 	}
 
@@ -220,90 +179,12 @@ func (p *Parser) parseSetting() *Setting {
 		return nil
 	}
 
-	if !p.expect(tokenSemicolon) {
-		return nil
-	}
-
-	return &result
-}
-
-func (p *Parser) parseMonitor() *Monitor {
-	var result Monitor
-
-	if !p.expectIdentifier("monitor") {
-		return nil
-	}
-
-	if p.tokenCurrent.kind != tokenStringLiteral {
-		p.errorf("expected monitor column name string, got %v", p.tokenCurrent.kind)
-		return nil
-	}
-
-	result.ColumnName = p.tokenCurrent.valueLiteral
-
-	p.advanceToken()
-
-	if !p.expect(tokenLeftBrace) {
-		return nil
-	}
-
-	for p.tokenCurrent.kind != tokenRightBrace && p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
-		if p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "level" {
-			r := p.parseRule()
-			if r != nil {
-				result.Rules = append(result.Rules, r)
-			} else {
-				// error recovery: skip to next rule or '}'
-				p.skipToIdentifierRightBrace("level")
-			}
-		} else {
-			p.errorf("unexpected token inside monitor block: %v (%s)", p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
-			p.skipToIdentifierRightBrace("level")
-		}
-	}
-
-	if !p.expect(tokenRightBrace) {
-		p.errorf("monitor block not properly closed")
-		if p.tokenCurrent.kind != tokenRightBrace && p.tokenCurrent.kind != tokenEOF {
-			p.advanceToken()
-		}
-	}
-
-	return &result
-}
-
-func (p *Parser) parseRule() *Rule {
-	var result Rule
-
-	if !p.expectIdentifier("level") {
-		return nil
-	}
-
-	if p.tokenCurrent.kind != tokenNumber {
-		p.errorf("expected rule level number, got %v", p.tokenCurrent.kind)
-		return nil
-	}
-	level, err := strconv.Atoi(p.tokenCurrent.valueLiteral)
-	if err != nil {
-		p.errorf("invalid level number '%s': %v", p.tokenCurrent.valueLiteral, err)
-		return nil
-	}
-
-	result.Level = level
-
-	p.advanceToken()
-
-	if !p.expectIdentifier("when") {
-		return nil
-	}
-
-	result.Condition = p.parseExpression(0) // parse the condition expression
-	if result.Condition == nil {
-		p.errorf("invalid rule condition expression")
-		return nil
-	}
-
-	if !p.expect(tokenSemicolon) {
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseSetting - 2",
+			KindExpected: tokenSemicolon,
+		},
+	) {
 		return nil
 	}
 
@@ -413,27 +294,4 @@ func (p *Parser) skipToIdentifierRightBrace(identifiers ...string) {
 
 func (p *Parser) currentTokenIs(t tokenKind) bool {
 	return p.tokenCurrent.kind == t
-}
-
-func parse(input io.Reader) (*AlertConfiguration, []string) {
-	buf := make([]byte, 1)
-	n, err := input.Read(buf)
-	if n == 0 || err == io.EOF {
-		return nil, []string{"input is empty"}
-	}
-
-	l := newLexer(
-		io.MultiReader(bytes.NewReader(buf), input),
-	)
-
-	p := NewParser(l)
-	p.debug = true // TODO: remove later on.
-
-	programAST := p.parserEntrypoint()
-
-	if l.errorParsing != nil {
-		p.errors = append(p.errors, fmt.Sprintf("lexer error: %v", l.errorParsing))
-	}
-
-	return programAST, p.errors
 }

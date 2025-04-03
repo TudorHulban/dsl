@@ -14,7 +14,7 @@ func TestThreshold(t *testing.T) {
 			inputMissingValue := `threshold =`
 			reader := strings.NewReader(inputMissingValue)
 
-			_, errs := parse(reader)
+			_, errs := Parse(reader)
 
 			require.NotEmpty(t, errs, "should report syntax error")
 			require.Regexp(t,
@@ -31,7 +31,7 @@ func TestThreshold(t *testing.T) {
 			inputMissingValue := `threshold = a`
 			reader := strings.NewReader(inputMissingValue)
 
-			_, errs := parse(reader)
+			_, errs := Parse(reader)
 
 			require.NotEmpty(t, errs, "should report syntax error")
 			require.Regexp(t,
@@ -55,11 +55,15 @@ func TestThreshold(t *testing.T) {
 			`
 			reader := strings.NewReader(inputValid)
 
-			config, errs := parse(reader)
+			config, errs := Parse(reader)
 
 			require.Empty(t, errs, "should have no parsing errors")
 			require.Len(t, config.Criterias, 1, "should parse criteria")
-			require.Len(t, config.Criterias[0].Monitors, 1, "should parse monitor")
+			require.Len(t,
+				config.Criterias[0].Monitors,
+				1,
+				"should parse monitor",
+			)
 
 			rule := config.Criterias[0].Monitors[0].Rules[0]
 			require.Contains(t,

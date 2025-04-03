@@ -12,7 +12,7 @@ func TestEmptyInput(t *testing.T) {
 	inputEmpty := ""
 	reader := strings.NewReader(inputEmpty)
 
-	ast, errors := parse(reader)
+	ast, errors := Parse(reader)
 	require.Empty(t, errors)
 	require.Nil(t, ast)
 
@@ -41,7 +41,7 @@ func TestTokenAdvance(t *testing.T) {
 	inputDataset := `criteria "high_volume" { }`
 	reader := strings.NewReader(inputDataset)
 
-	ast, errors := parse(reader)
+	ast, errors := Parse(reader)
 	require.Empty(t, errors)
 	require.NotEmpty(t,
 		ast.Criterias,

@@ -5,7 +5,7 @@ import "text/scanner"
 type tokenKind int
 
 const (
-	tokenEOF tokenKind = iota
+	tokenEOF tokenKind = iota + 1
 	tokenError
 	tokenIdentifier // identifier like 'criteria', 'value', 'my_var'
 	tokenCriteria

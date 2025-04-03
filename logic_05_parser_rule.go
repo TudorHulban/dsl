@@ -1,0 +1,70 @@
+package main
+
+import "strconv"
+
+func (p *Parser) parseRule() *Rule {
+	var result Rule
+
+	// 1. Level keyword
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseRule - 1",
+			KindExpected: tokenLevel,
+		},
+	) {
+		return nil
+	}
+
+	// 2. Number
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseRule - 2",
+			KindExpected: tokenNumber,
+		},
+	) {
+		return nil
+	}
+
+	level, err := strconv.Atoi(p.tokenCurrent.valueLiteral)
+	if err != nil {
+		p.errorf(
+			"invalid level number '%s': %v",
+			p.tokenCurrent.valueLiteral,
+			err,
+		)
+
+		return nil
+	}
+
+	result.Level = level
+
+	p.advanceToken()
+
+	// 3. When
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseRule - 3",
+			KindExpected: tokenWhen,
+		},
+	) {
+		return nil
+	}
+
+	result.Condition = p.parseExpression(0) // parse the condition expression
+	if result.Condition == nil {
+		p.errorf("invalid rule condition expression")
+
+		return nil
+	}
+
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseRule - 4",
+			KindExpected: tokenSemicolon,
+		},
+	) {
+		return nil
+	}
+
+	return &result
+}

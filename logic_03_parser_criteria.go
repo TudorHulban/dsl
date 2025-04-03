@@ -3,58 +3,98 @@ package main
 func (p *Parser) parseCriteria() *Criteria {
 	var result Criteria
 
-	if !p.expectIdentifier(_dslCriteria) {
+	// 1. Criteria keyword
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseCriteria - 1",
+			KindExpected: tokenCriteria,
+		},
+	) {
 		return nil
 	}
 
-	if p.tokenCurrent.kind != tokenStringLiteral {
-		p.errorf(
-			"expected criteria name string, got %v",
-			p.tokenCurrent.kind,
-		)
-
+	// 2. Criteria name (string)
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseCriteria - 2",
+			KindExpected: tokenStringLiteral,
+		},
+	) {
 		return nil
 	}
 
 	result.Name = p.tokenCurrent.valueLiteral
 	p.advanceToken()
 
-	if !p.expect(tokenLeftBrace) {
+	// 3. Opening brace
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseCriteria - 3",
+			KindExpected: tokenMonitor,
+		},
+	) {
 		return nil
 	}
 
-	for p.tokenCurrent.kind != tokenRightBrace && p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
+	// 4. Body parsing (improved keyword detection)
+	for !p.currentTokenIs(tokenRightBrace) {
 		switch {
-		case p.tokenCurrent.kind == tokenIdentifier && (p.tokenCurrent.valueLiteral == "baseline" || p.tokenCurrent.valueLiteral == "increment"):
-			sett := p.parseSetting()
-			if sett != nil {
-				result.Settings = append(result.Settings, sett)
-			} else {
-				// error recovery: skip to next setting/monitor or '}'
-				p.skipToIdentifierRightBrace("baseline", "increment", "monitor")
+		case p.currentTokenIs(tokenIdentifier):
+			switch p.tokenCurrent.valueLiteral {
+			case "baseline", "increment":
+				if setting := p.parseSetting(); setting != nil {
+					result.Settings = append(
+						result.Settings,
+						setting,
+					)
+
+					continue
+				}
+
+			case _dslMonitor:
+				if monitor := p.parseMonitor(); monitor != nil {
+					result.Monitors = append(
+						result.Monitors,
+						monitor,
+					)
+
+					continue
+				}
 			}
 
-		case p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == "monitor":
-			mon := p.parseMonitor()
-			if mon != nil {
-				result.Monitors = append(result.Monitors, mon)
-			} else {
-				// error recovery: skip to next setting/monitor or '}'
-				p.skipToIdentifierRightBrace("baseline", "increment", "monitor")
-			}
+			p.errorf(
+				"Caller:%s\nUnexpected identifier: %s",
+
+				"parseCriteria - 4",
+				p.tokenCurrent.valueLiteral,
+			)
 
 		default:
-			p.errorf("unexpected token inside criteria block: %v (%s)", p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
-			p.skipToIdentifierRightBrace("baseline", "increment", "monitor")
+			p.errorf(
+				"Caller:%s\nUnexpected token: %v",
+
+				"parseCriteria - 5",
+				p.tokenCurrent.kind,
+			)
 		}
+
+		p.skipToIdentifierRightBrace(
+			"baseline",
+			"increment",
+			_dslMonitor,
+		)
 	}
 
-	if !p.expect(tokenRightBrace) {
-		p.errorf("criteria block not properly closed")
+	// 5. Closing brace
+	if !p.expect(
+		&paramsExpect{
+			Caller:       "parseCriteria - 6",
+			KindExpected: tokenRightBrace,
+		},
+	) {
+		p.tryRecoverAtBlockEnd()
 
-		if p.tokenCurrent.kind != tokenRightBrace && p.tokenCurrent.kind != tokenEOF {
-			p.advanceToken()
-		}
+		return nil
 	}
 
 	return &result

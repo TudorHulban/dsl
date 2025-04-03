@@ -27,7 +27,7 @@ func TestParser(t *testing.T) {
 
 	reader := strings.NewReader(dsl)
 
-	ast, errors := parse(reader)
+	ast, errors := Parse(reader)
 	if len(errors) > 0 {
 		fmt.Fprintln(os.Stderr, "Parsing Errors:")
 
