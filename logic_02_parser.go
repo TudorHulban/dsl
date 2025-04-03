@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 )
@@ -108,7 +109,7 @@ func (p *Parser) expectNoTokenAdvance(params *paramsExpect) bool {
 	return false
 }
 
-func (p *Parser) parserEntrypoint() *AlertConfiguration {
+func (p *Parser) parserEntrypoint() (*AlertConfiguration, error) {
 	var result AlertConfiguration
 
 	for {
@@ -124,7 +125,10 @@ func (p *Parser) parserEntrypoint() *AlertConfiguration {
 				continue // Successfully parsed, move to next token
 			}
 
-			break
+			return nil,
+				errors.New(
+					"there is an error",
+				)
 		}
 
 		// Unexpected token - attempt recovery
@@ -144,7 +148,8 @@ func (p *Parser) parserEntrypoint() *AlertConfiguration {
 		p.advanceToken()
 	}
 
-	return &result
+	return &result,
+		nil
 }
 
 func (p *Parser) skipToIdentifier(identifiers ...string) {

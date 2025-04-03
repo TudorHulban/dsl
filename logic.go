@@ -24,7 +24,7 @@ func Parse(input io.Reader) (*AlertConfiguration, []string) {
 		},
 	)
 
-	programAST := p.parserEntrypoint()
+	programAST, errParser := p.parserEntrypoint()
 
 	if l.errorParsing != nil {
 		p.errors = append(
@@ -34,6 +34,11 @@ func Parse(input io.Reader) (*AlertConfiguration, []string) {
 	}
 
 	if len(p.errors) > 0 {
+		return nil,
+			p.errors
+	}
+
+	if errParser != nil {
 		return nil,
 			p.errors
 	}

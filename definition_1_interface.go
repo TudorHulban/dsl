@@ -1,7 +1,7 @@
 package main
 
 type Expression interface {
-	exprNode()
+	exprNode() // TODO: needed?
 	String() string
 }
 
