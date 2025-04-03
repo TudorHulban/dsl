@@ -18,8 +18,11 @@ func Parse(input io.Reader) (*AlertConfiguration, []string) {
 		io.MultiReader(bytes.NewReader(buf), input),
 	)
 
-	p := NewParser(l)
-	p.debug = true // TODO: remove later on.
+	p := NewParser(
+		&ParamsNewParser{
+			Lexer: l,
+		},
+	)
 
 	programAST := p.parserEntrypoint()
 

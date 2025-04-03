@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 )
 
 // Parser holds the state of the parsing process.
@@ -17,8 +16,16 @@ type Parser struct {
 	debug bool
 }
 
-func NewParser(l *dslLexer) *Parser {
-	p := Parser{lex: l}
+type ParamsNewParser struct {
+	Lexer       *dslLexer
+	IsDebugMode bool
+}
+
+func NewParser(params *ParamsNewParser) *Parser {
+	p := Parser{
+		lex:   params.Lexer,
+		debug: params.IsDebugMode,
+	}
 
 	p.tokenNext = p.lex.nextToken()
 	p.advanceToken()
@@ -70,10 +77,26 @@ type paramsExpect struct {
 	KindExpected tokenKind
 }
 
-func (p *Parser) expect(params *paramsExpect) bool {
+func (p *Parser) expectWTokenAdvance(params *paramsExpect) bool {
 	if p.tokenCurrent.kind == params.KindExpected {
 		p.advanceToken()
 
+		return true
+	}
+
+	p.errorf(
+		"Caller:%s\nExpected token %v, got %v (%s)",
+		params.Caller,
+		params.KindExpected,
+		p.tokenCurrent.kind,
+		p.tokenCurrent.valueLiteral,
+	)
+
+	return false
+}
+
+func (p *Parser) expectNoTokenAdvance(params *paramsExpect) bool {
+	if p.tokenCurrent.kind == params.KindExpected {
 		return true
 	}
 
@@ -164,7 +187,7 @@ func (p *Parser) parseSetting() *Setting {
 	result.Name = p.tokenCurrent.valueLiteral
 	p.advanceToken()
 
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseSetting - 1",
 			KindExpected: tokenAssign,
@@ -179,7 +202,7 @@ func (p *Parser) parseSetting() *Setting {
 		return nil
 	}
 
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseSetting - 2",
 			KindExpected: tokenSemicolon,
@@ -189,61 +212,6 @@ func (p *Parser) parseSetting() *Setting {
 	}
 
 	return &result
-}
-
-// parseExpression - simplified placeholder for expression parsing
-// a real implementation needs operator precedence (e.g., Pratt parsing or shunting-yard)
-func (p *Parser) parseExpression(precedence int) Expression {
-	// very basic: handles literal or variable, optionally followed by operator and another term
-	// does not handle precedence or parentheses correctly!
-	var left Expression
-
-	switch p.tokenCurrent.kind {
-	case tokenNumber:
-		// try parsing as float first
-		fval, errf := strconv.ParseFloat(p.tokenCurrent.valueLiteral, 64)
-		if errf == nil {
-			left = newliteral(fval, p.tokenCurrent.valueLiteral)
-		} else {
-			// try parsing as int
-			ival, erri := strconv.Atoi(p.tokenCurrent.valueLiteral)
-			if erri == nil {
-				left = newliteral(ival, p.tokenCurrent.valueLiteral)
-			} else {
-				p.errorf("invalid number literal: %s", p.tokenCurrent.valueLiteral)
-				return nil
-			}
-		}
-
-		p.advanceToken()
-
-	case tokenIdentifier:
-		left = newvariable(p.tokenCurrent.valueLiteral)
-
-		p.advanceToken()
-
-	default:
-		p.errorf("unexpected token in expression: %v (%s)", p.tokenCurrent.kind, p.tokenCurrent.valueLiteral)
-
-		return nil
-	}
-
-	// look ahead for a binary operator (super simplified)
-	if p.tokenCurrent.kind == tokenOperator {
-		op := p.tokenCurrent.valueLiteral
-
-		p.advanceToken()
-
-		right := p.parseExpression(0) // recursive call (doesn't handle precedence)
-		if right == nil {
-			p.errorf("missing right hand side for operator %s", op)
-			return nil
-		}
-
-		return newbinaryexpr(left, op, right)
-	}
-
-	return left // return just the literal or variable if no operator follows
 }
 
 // --- basic error recovery helpers (very naive) ---

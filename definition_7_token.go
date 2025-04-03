@@ -26,6 +26,8 @@ const (
 	_dslMonitor  = "monitor"
 	_dslLevel    = "level"
 	_dslWhen     = "when"
+
+	_dslRightBrace = "}"
 )
 
 // token represents a single token from the input.

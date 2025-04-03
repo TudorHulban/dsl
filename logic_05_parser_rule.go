@@ -6,7 +6,7 @@ func (p *Parser) parseRule() *Rule {
 	var result Rule
 
 	// 1. Level keyword
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseRule - 1",
 			KindExpected: tokenLevel,
@@ -16,7 +16,7 @@ func (p *Parser) parseRule() *Rule {
 	}
 
 	// 2. Number
-	if !p.expect(
+	if !p.expectNoTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseRule - 2",
 			KindExpected: tokenNumber,
@@ -41,7 +41,7 @@ func (p *Parser) parseRule() *Rule {
 	p.advanceToken()
 
 	// 3. When
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseRule - 3",
 			KindExpected: tokenWhen,
@@ -50,6 +50,8 @@ func (p *Parser) parseRule() *Rule {
 		return nil
 	}
 
+	p.logTokenState()
+
 	result.Condition = p.parseExpression(0) // parse the condition expression
 	if result.Condition == nil {
 		p.errorf("invalid rule condition expression")
@@ -57,7 +59,7 @@ func (p *Parser) parseRule() *Rule {
 		return nil
 	}
 
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseRule - 4",
 			KindExpected: tokenSemicolon,

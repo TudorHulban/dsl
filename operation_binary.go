@@ -21,5 +21,9 @@ func (e *ExpressionBinary) String() string {
 }
 
 func newbinaryexpr(lhs Expression, op string, rhs Expression) *ExpressionBinary {
-	return &ExpressionBinary{LefthandSide: lhs, Operator: op, RighthandSide: rhs}
+	return &ExpressionBinary{
+		LefthandSide:  lhs,
+		Operator:      op,
+		RighthandSide: rhs,
+	}
 }

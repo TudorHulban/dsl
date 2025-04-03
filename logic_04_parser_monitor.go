@@ -1,10 +1,12 @@
 package main
 
+import "fmt"
+
 func (p *Parser) parseMonitor() *Monitor {
 	var result Monitor
 
 	// 1. Monitor keyword
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseMonitor - 1",
 			KindExpected: tokenMonitor,
@@ -14,7 +16,7 @@ func (p *Parser) parseMonitor() *Monitor {
 	}
 
 	// 2. Monitor name (string)
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseMonitor - 2",
 			KindExpected: tokenStringLiteral,
@@ -26,8 +28,13 @@ func (p *Parser) parseMonitor() *Monitor {
 	result.ColumnName = p.tokenCurrent.valueLiteral
 	p.advanceToken()
 
+	fmt.Println(
+		"xxxxxxxxxxxxxxxxxxxxxxxxxxx",
+		result.ColumnName,
+	)
+
 	// 3. Opening brace
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseMonitor - 3",
 			KindExpected: tokenLeftBrace,
@@ -59,7 +66,7 @@ func (p *Parser) parseMonitor() *Monitor {
 	}
 
 	// 5. Closing brace
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseMonitor - 5",
 			KindExpected: tokenRightBrace,

@@ -1,10 +1,12 @@
 package main
 
+import "fmt"
+
 func (p *Parser) parseCriteria() *Criteria {
 	var result Criteria
 
 	// 1. Criteria keyword
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseCriteria - 1",
 			KindExpected: tokenCriteria,
@@ -14,7 +16,7 @@ func (p *Parser) parseCriteria() *Criteria {
 	}
 
 	// 2. Criteria name (string)
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseCriteria - 2",
 			KindExpected: tokenStringLiteral,
@@ -27,7 +29,7 @@ func (p *Parser) parseCriteria() *Criteria {
 	p.advanceToken()
 
 	// 3. Opening brace
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseCriteria - 3",
 			KindExpected: tokenMonitor,
@@ -51,6 +53,9 @@ func (p *Parser) parseCriteria() *Criteria {
 					continue
 				}
 
+			case _dslRightBrace:
+				continue
+
 			case _dslMonitor:
 				if monitor := p.parseMonitor(); monitor != nil {
 					result.Monitors = append(
@@ -70,6 +75,11 @@ func (p *Parser) parseCriteria() *Criteria {
 			)
 
 		default:
+			fmt.Println(
+				"xxxxxxxxxxxxx",
+				p.tokenCurrent.valueLiteral,
+			)
+
 			p.errorf(
 				"Caller:%s\nUnexpected token: %v",
 
@@ -86,7 +96,7 @@ func (p *Parser) parseCriteria() *Criteria {
 	}
 
 	// 5. Closing brace
-	if !p.expect(
+	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseCriteria - 6",
 			KindExpected: tokenRightBrace,
