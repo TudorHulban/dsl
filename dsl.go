@@ -30,5 +30,6 @@ package main
 //   // --- End of DSL ---
 
 const (
-	_dslCriteria = "criteria"
+	_dslCriteria  = "criteria"
+	_dslThreshold = "threshold"
 )

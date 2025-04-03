@@ -477,7 +477,7 @@ func parse(input io.Reader) (*AlertConfiguration, []string) {
 		return nil, []string{"input is empty"}
 	}
 
-	l := newlexer(
+	l := newLexer(
 		io.MultiReader(bytes.NewReader(buf), input),
 	)
 

@@ -30,6 +30,7 @@ func TestParser(t *testing.T) {
 	ast, errors := parse(reader)
 	if len(errors) > 0 {
 		fmt.Fprintln(os.Stderr, "Parsing Errors:")
+
 		for _, err := range errors {
 			fmt.Fprintln(os.Stderr, "-", err)
 		}

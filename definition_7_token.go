@@ -7,7 +7,8 @@ type tokenKind int
 const (
 	tokenEOF tokenKind = iota
 	tokenError
-	tokenIdentifier    // identifier like 'dataset', 'criteria', 'value', 'my_var'
+	tokenIdentifier // identifier like 'dataset', 'criteria', 'value', 'my_var'
+	tokenThreshold
 	tokenStringLiteral // "string literal"
 	tokenNumber        // 123, 50.5
 	tokenLeftBrace     // {
