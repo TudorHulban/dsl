@@ -146,7 +146,6 @@ func (l *dslLexer) nextToken() token {
 			pos:          position,
 		}
 
-		// very basic operator handling - needs improvement for multi-char ops (>=)
 	case '>', '<', '+', '-', '*', '/':
 		// peek ahead for multi-char operators like >=, <=, ==, !=
 		next := l.scaner.Peek()

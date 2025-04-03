@@ -5,7 +5,6 @@ import (
 	"slices"
 )
 
-// Parser holds the state of the parsing process.
 type Parser struct {
 	lex *dslLexer
 
@@ -36,16 +35,13 @@ func NewParser(params *ParamsNewParser) *Parser {
 			p.tokenCurrent.valueLiteral,
 			p.tokenNext.valueLiteral)
 	}
+
 	return &p
 }
 
 func (p *Parser) advanceToken() {
 	p.tokenCurrent = p.tokenNext
 	p.tokenNext = p.lex.nextToken()
-}
-
-func (p *Parser) EnableDebug() {
-	p.debug = true
 }
 
 func (p *Parser) logTokenState() {
@@ -112,28 +108,9 @@ func (p *Parser) expectNoTokenAdvance(params *paramsExpect) bool {
 	return false
 }
 
-// expectIdentifier checks if the current token is an identifier with specific text.
-func (p *Parser) expectIdentifier(ident string) bool {
-	if p.tokenCurrent.kind == tokenIdentifier && p.tokenCurrent.valueLiteral == ident {
-		p.advanceToken()
-
-		return true
-	}
-
-	p.errorf(
-		"expected identifier '%s', got %v (%s)",
-		ident,
-		p.tokenCurrent.kind,
-		p.tokenCurrent.valueLiteral,
-	)
-
-	return false
-}
-
 func (p *Parser) parserEntrypoint() *AlertConfiguration {
 	var result AlertConfiguration
 
-	// Keep processing until EOF or error
 	for {
 		if p.tokenCurrent.kind == tokenEOF || p.tokenCurrent.kind == tokenError {
 			break
@@ -147,9 +124,7 @@ func (p *Parser) parserEntrypoint() *AlertConfiguration {
 				continue // Successfully parsed, move to next token
 			}
 
-			// If we get here, parsing failed - skip to next potential dataset
-			p.skipToIdentifier("dataset")
-			continue
+			break
 		}
 
 		// Unexpected token - attempt recovery
@@ -161,6 +136,7 @@ func (p *Parser) parserEntrypoint() *AlertConfiguration {
 			)
 
 			p.skipToIdentifier(_dslCriteria)
+
 			continue
 		}
 

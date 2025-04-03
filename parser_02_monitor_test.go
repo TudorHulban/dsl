@@ -36,10 +36,12 @@ func TestMonitorParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `monitor "orders" { level 1 when value > 5;` // Missing }
 
-			p := NewParser(&ParamsNewParser{
-				Lexer:       newLexer(strings.NewReader(input)),
-				IsDebugMode: true,
-			})
+			p := NewParser(
+				&ParamsNewParser{
+					Lexer:       newLexer(strings.NewReader(input)),
+					IsDebugMode: true,
+				},
+			)
 
 			_ = p.parseMonitor()
 
@@ -60,10 +62,12 @@ func TestMonitorParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `monitor { level 1 when value > 5; }`
 
-			p := NewParser(&ParamsNewParser{
-				Lexer:       newLexer(strings.NewReader(input)),
-				IsDebugMode: true,
-			})
+			p := NewParser(
+				&ParamsNewParser{
+					Lexer:       newLexer(strings.NewReader(input)),
+					IsDebugMode: true,
+				},
+			)
 
 			_ = p.parseMonitor()
 
@@ -106,7 +110,8 @@ func TestMonitorParsing(t *testing.T) {
 		monitor "orders" {
 			level 1 when value > 5;
 			level 2 when value > 10;
-		}`
+		}
+		`
 
 			p := NewParser(
 				&ParamsNewParser{
