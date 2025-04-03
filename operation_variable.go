@@ -7,7 +7,7 @@ type ExpressionVariable struct {
 
 func (e *ExpressionVariable) exprNode() {}
 
-func (e *ExpressionVariable) string() string {
+func (e *ExpressionVariable) String() string {
 	return e.name
 }
 

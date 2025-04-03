@@ -7,7 +7,7 @@ type ExpressionLiteral struct {
 
 func (e *ExpressionLiteral) exprNode() {}
 
-func (e *ExpressionLiteral) string() string {
+func (e *ExpressionLiteral) String() string {
 	return e.raw
 }
 

@@ -1,6 +1,6 @@
 package main
 
-// --- Start of DSL for the current dataset ---
+// --- Start of DSL ---
 
 // criteria "criteria_name_1" {
 // 	// Optional settings (baselines, increments)
@@ -27,9 +27,4 @@ package main
 
 //   // ... potentially more criteria blocks
 
-//   // --- End of DSL ---
-
-const (
-	_dslCriteria  = "criteria"
-	_dslThreshold = "threshold"
-)
+// --- End of DSL ---

@@ -10,13 +10,13 @@ type ExpressionBinary struct {
 
 func (e *ExpressionBinary) exprNode() {}
 
-func (e *ExpressionBinary) string() string {
+func (e *ExpressionBinary) String() string {
 	return fmt.Sprintf(
 		"(%s %s %s)",
 
-		e.LefthandSide.string(),
+		e.LefthandSide.String(),
 		e.Operator,
-		e.RighthandSide.string(),
+		e.RighthandSide.String(),
 	)
 }
 

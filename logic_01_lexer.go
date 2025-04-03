@@ -52,10 +52,41 @@ func (l *dslLexer) nextToken() token {
 		}
 
 	case scanner.Ident:
-		return token{
-			kind:         tokenIdentifier,
-			valueLiteral: literalToken,
-			pos:          position,
+		switch literalToken {
+		case _dslCriteria:
+			return token{
+				kind:         tokenCriteria,
+				valueLiteral: literalToken,
+				pos:          position,
+			}
+
+		case _dslMonitor:
+			return token{
+				kind:         tokenMonitor,
+				valueLiteral: literalToken,
+				pos:          position,
+			}
+
+		case _dslLevel:
+			return token{
+				kind:         tokenLevel,
+				valueLiteral: literalToken,
+				pos:          position,
+			}
+
+		case _dslWhen:
+			return token{
+				kind:         tokenWhen,
+				valueLiteral: literalToken,
+				pos:          position,
+			}
+
+		default:
+			return token{
+				kind:         tokenIdentifier,
+				valueLiteral: literalToken,
+				pos:          position,
+			}
 		}
 
 	case scanner.String:

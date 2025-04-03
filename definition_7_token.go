@@ -7,8 +7,11 @@ type tokenKind int
 const (
 	tokenEOF tokenKind = iota
 	tokenError
-	tokenIdentifier // identifier like 'dataset', 'criteria', 'value', 'my_var'
-	tokenThreshold
+	tokenIdentifier // identifier like 'criteria', 'value', 'my_var'
+	tokenCriteria
+	tokenMonitor
+	tokenLevel
+	tokenWhen
 	tokenStringLiteral // "string literal"
 	tokenNumber        // 123, 50.5
 	tokenLeftBrace     // {
@@ -16,6 +19,13 @@ const (
 	tokenAssign        // =
 	tokenSemicolon     // ;
 	tokenOperator      // >, >=, <, <=, ==, !=, +, -, *, /
+)
+
+const (
+	_dslCriteria = "criteria"
+	_dslMonitor  = "monitor"
+	_dslLevel    = "level"
+	_dslWhen     = "when"
 )
 
 // token represents a single token from the input.
