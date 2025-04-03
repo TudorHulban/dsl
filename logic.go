@@ -33,5 +33,11 @@ func Parse(input io.Reader) (*AlertConfiguration, []string) {
 		)
 	}
 
-	return programAST, p.errors
+	if len(p.errors) > 0 {
+		return nil,
+			p.errors
+	}
+
+	return programAST,
+		nil
 }

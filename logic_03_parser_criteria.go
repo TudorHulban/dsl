@@ -32,9 +32,13 @@ func (p *Parser) parseCriteria() *Criteria {
 	if !p.expectWTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseCriteria - 3",
-			KindExpected: tokenMonitor,
+			KindExpected: tokenLeftBrace,
 		},
 	) {
+		return nil
+	}
+
+	if p.currentTokenIs(tokenRightBrace) {
 		return nil
 	}
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -9,46 +9,28 @@ import (
 )
 
 func TestEmptyInput(t *testing.T) {
-	inputEmpty := ""
-	reader := strings.NewReader(inputEmpty)
+	input := ""
+	reader := strings.NewReader(input)
 
 	ast, errors := Parse(reader)
-	require.Empty(t, errors)
-	require.Nil(t, ast)
 
-	// Verify specific error message
-	expectedError := "input is empty" // Match your actual error message
-	var found bool
+	require.Nil(t, ast, "AST should be nil for empty input")
+	require.NotEmpty(t, errors, "should return error for empty input")
+	require.Regexp(t,
+		regexp.MustCompile(`(?i)^input is empty$`), // Exact match, case-insensitive
+		errors[0],
 
-	for _, err := range errors {
-		if strings.Contains(err, expectedError) {
-			found = true
-
-			break
-		}
-	}
-
-	if !found {
-		t.Errorf(
-			"Expected error containing '%s', got %v",
-			expectedError,
-			errors,
-		)
-	}
+		"Expected empty input error\nGot: %q",
+		errors[0],
+	)
 }
 
 func TestTokenAdvance(t *testing.T) {
-	inputDataset := `criteria "high_volume" { }`
-	reader := strings.NewReader(inputDataset)
+	input := `criteria "high_volume" { }`
+	reader := strings.NewReader(input)
 
 	ast, errors := Parse(reader)
-	require.Empty(t, errors)
-	require.NotEmpty(t,
-		ast.Criterias,
-	)
 
-	fmt.Printf(
-		"Parsed criteria: %+v\n",
-		ast.Criterias[0],
-	)
+	require.NotEmpty(t, errors)
+	require.Nil(t, ast)
 }
