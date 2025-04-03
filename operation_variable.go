@@ -11,7 +11,7 @@ func (e *ExpressionVariable) String() string {
 	return e.name
 }
 
-func newvariable(name string) *ExpressionVariable {
+func newVariable(name string) *ExpressionVariable {
 	return &ExpressionVariable{
 		name: name,
 	}

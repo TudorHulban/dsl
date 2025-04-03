@@ -2,6 +2,28 @@ package main
 
 import "strconv"
 
+func (p *Parser) currentPrecedence() int {
+	if p.tokenCurrent.kind != tokenOperator {
+		return 0
+	}
+
+	return p.operatorPrecedence(p.tokenCurrent.valueLiteral)
+}
+
+func (p *Parser) operatorPrecedence(op string) int {
+	switch op {
+	case "*", "/":
+		return 5
+	case "+", "-":
+		return 4
+	case ">", "<", ">=", "<=", "==", "!=":
+		return 3
+
+	default:
+		return 0
+	}
+}
+
 func (p *Parser) parseExpression(precedence int) Expression {
 	var left Expression
 
@@ -33,7 +55,7 @@ func (p *Parser) parseExpression(precedence int) Expression {
 		p.advanceToken()
 
 	case tokenIdentifier:
-		left = newvariable(p.tokenCurrent.valueLiteral)
+		left = newVariable(p.tokenCurrent.valueLiteral)
 
 		p.advanceToken()
 
@@ -47,24 +69,47 @@ func (p *Parser) parseExpression(precedence int) Expression {
 		return nil
 	}
 
-	// look ahead for a binary operator (super simplified)
-	if p.tokenCurrent.kind == tokenOperator {
-		op := p.tokenCurrent.valueLiteral
+	for {
+		// Stop if next token isn't an operator or at higher precedence
+		if p.tokenCurrent.kind != tokenOperator ||
+			precedence >= p.currentPrecedence() {
+			break
+		}
 
+		op := p.tokenCurrent.valueLiteral
+		opPrec := p.operatorPrecedence(op)
 		p.advanceToken()
 
-		right := p.parseExpression(0) // recursive call (doesn't handle precedence)
+		right := p.parseExpression(opPrec)
 		if right == nil {
-			p.errorf(
-				"missing right hand side for operator %s",
-				op,
-			)
-
 			return nil
 		}
 
-		return newbinaryexpr(left, op, right)
+		left = &ExpressionBinary{
+			LefthandSide:  left,
+			Operator:      op,
+			RighthandSide: right,
+		}
 	}
+
+	// look ahead for a binary operator (super simplified)
+	// if p.tokenCurrent.kind == tokenOperator {
+	// 	op := p.tokenCurrent.valueLiteral
+
+	// 	p.advanceToken()
+
+	// 	right := p.parseExpression(0) // recursive call (doesn't handle precedence)
+	// 	if right == nil {
+	// 		p.errorf(
+	// 			"missing right hand side for operator %s",
+	// 			op,
+	// 		)
+
+	// 		return nil
+	// 	}
+
+	// 	return newbinaryexpr(left, op, right)
+	// }
 
 	return left // return just the literal or variable if no operator follows
 }
