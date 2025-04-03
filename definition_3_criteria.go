@@ -1,8 +1,6 @@
 package main
 
 type Criteria struct {
-	Name string
-
-	Settings []*Setting // Settings defined within this criteria
+	Name     string
 	Monitors []*Monitor
 }

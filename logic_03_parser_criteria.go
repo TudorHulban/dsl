@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func (p *Parser) parseCriteria() *Criteria {
 	var result Criteria
 
@@ -16,7 +14,7 @@ func (p *Parser) parseCriteria() *Criteria {
 	}
 
 	// 2. Criteria name (string)
-	if !p.expectWTokenAdvance(
+	if !p.expectNoTokenAdvance(
 		&paramsExpect{
 			Caller:       "parseCriteria - 2",
 			KindExpected: tokenStringLiteral,
@@ -38,65 +36,47 @@ func (p *Parser) parseCriteria() *Criteria {
 		return nil
 	}
 
+	// 4. Check for empty block
 	if p.currentTokenIs(tokenRightBrace) {
+		p.errorf(
+			"Caller:%s\nEmpty criteria block not allowed",
+			"parseCriteria - 4",
+		)
+
+		p.advanceToken() // Consume the '}' to avoid hanging
+
 		return nil
 	}
 
-	// 4. Body parsing (improved keyword detection)
+	// 5. Body parsing (improved keyword detection)
 	for !p.currentTokenIs(tokenRightBrace) {
-		switch {
-		case p.currentTokenIs(tokenIdentifier):
+		switch p.tokenCurrent.kind { // Switch on kind, not valueLiteral
+		case tokenIdentifier:
 			switch p.tokenCurrent.valueLiteral {
-			case "baseline", "increment":
-				if setting := p.parseSetting(); setting != nil {
-					result.Settings = append(
-						result.Settings,
-						setting,
-					)
-
-					continue
-				}
-
-			case _dslRightBrace:
-				continue
-
-			case _dslMonitor:
-				if monitor := p.parseMonitor(); monitor != nil {
-					result.Monitors = append(
-						result.Monitors,
-						monitor,
-					)
-
-					continue
-				}
+			default:
+				p.errorf(
+					"Caller:%s\nUnexpected identifier: %s",
+					"parseCriteria - 4",
+					p.tokenCurrent.valueLiteral,
+				)
 			}
 
-			p.errorf(
-				"Caller:%s\nUnexpected identifier: %s",
+		case tokenMonitor:
+			if monitor := p.parseMonitor(); monitor != nil {
+				result.Monitors = append(result.Monitors, monitor)
 
-				"parseCriteria - 4",
-				p.tokenCurrent.valueLiteral,
-			)
+				continue
+			}
 
 		default:
-			fmt.Println(
-				"xxxxxxxxxxxxx",
-				p.tokenCurrent.valueLiteral,
-			)
-
 			p.errorf(
 				"Caller:%s\nUnexpected token: %v",
-
 				"parseCriteria - 5",
 				p.tokenCurrent.kind,
 			)
 		}
 
-		p.skipToIdentifierRightBrace(
-			"baseline",
-			"increment",
-			_dslMonitor,
-		)
+		p.skipToIdentifierRightBrace("baseline", "increment", _dslMonitor)
 	}
 
 	// 5. Closing brace

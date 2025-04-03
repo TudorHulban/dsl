@@ -70,14 +70,15 @@ func (p *Parser) parseExpression(precedence int) Expression {
 	}
 
 	for {
-		// Stop if next token isn't an operator or at higher precedence
+		// Stop if next token is not an operator or at higher precedence
 		if p.tokenCurrent.kind != tokenOperator ||
 			precedence >= p.currentPrecedence() {
 			break
 		}
 
-		op := p.tokenCurrent.valueLiteral
-		opPrec := p.operatorPrecedence(op)
+		currentOperator := p.tokenCurrent.valueLiteral
+		opPrec := p.operatorPrecedence(currentOperator)
+
 		p.advanceToken()
 
 		right := p.parseExpression(opPrec)
@@ -87,29 +88,10 @@ func (p *Parser) parseExpression(precedence int) Expression {
 
 		left = &ExpressionBinary{
 			LefthandSide:  left,
-			Operator:      op,
+			Operator:      currentOperator,
 			RighthandSide: right,
 		}
 	}
-
-	// look ahead for a binary operator (super simplified)
-	// if p.tokenCurrent.kind == tokenOperator {
-	// 	op := p.tokenCurrent.valueLiteral
-
-	// 	p.advanceToken()
-
-	// 	right := p.parseExpression(0) // recursive call (doesn't handle precedence)
-	// 	if right == nil {
-	// 		p.errorf(
-	// 			"missing right hand side for operator %s",
-	// 			op,
-	// 		)
-
-	// 		return nil
-	// 	}
-
-	// 	return newbinaryexpr(left, op, right)
-	// }
 
 	return left // return just the literal or variable if no operator follows
 }

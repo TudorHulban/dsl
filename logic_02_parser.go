@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 )
 
 // Parser holds the state of the parsing process.
@@ -170,72 +171,14 @@ func (p *Parser) parserEntrypoint() *AlertConfiguration {
 	return &result
 }
 
-func (p *Parser) parseSetting() *Setting {
-	var result Setting
-
-	result.Kind = p.tokenCurrent.valueLiteral // "baseline" or "increment"
-	p.advanceToken()
-
-	if p.tokenCurrent.kind != tokenIdentifier {
-		p.errorf(
-			"expected setting name identifier, got %v",
-			p.tokenCurrent.kind,
-		)
-
-		return nil
-	}
-	result.Name = p.tokenCurrent.valueLiteral
-	p.advanceToken()
-
-	if !p.expectWTokenAdvance(
-		&paramsExpect{
-			Caller:       "parseSetting - 1",
-			KindExpected: tokenAssign,
-		},
-	) {
-		return nil
-	}
-
-	result.Value = p.parseExpression(0) // parse the value expression
-	if result.Value == nil {
-		p.errorf("invalid setting value expression")
-		return nil
-	}
-
-	if !p.expectWTokenAdvance(
-		&paramsExpect{
-			Caller:       "parseSetting - 2",
-			KindExpected: tokenSemicolon,
-		},
-	) {
-		return nil
-	}
-
-	return &result
-}
-
-// --- basic error recovery helpers (very naive) ---
-
-func (p *Parser) skipto(types ...tokenKind) {
-	for p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
-		for _, t := range types {
-			if p.tokenCurrent.kind == t {
-				return // found one of the target types
-			}
-		}
-
-		p.advanceToken()
-	}
-}
-
 func (p *Parser) skipToIdentifier(identifiers ...string) {
 	for p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
-		if p.tokenCurrent.kind == tokenIdentifier {
-			for _, identifier := range identifiers {
-				if p.tokenCurrent.valueLiteral == identifier {
-					return // found one of the target idents
-				}
-			}
+		if p.tokenCurrent.kind == tokenIdentifier &&
+			slices.Contains(
+				identifiers,
+				p.tokenCurrent.valueLiteral,
+			) {
+			return // found one of the target identifiers
 		}
 
 		p.advanceToken()
@@ -244,16 +187,13 @@ func (p *Parser) skipToIdentifier(identifiers ...string) {
 
 func (p *Parser) skipToIdentifierRightBrace(identifiers ...string) {
 	for p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
-		if p.tokenCurrent.kind == tokenRightBrace { // stop at closing brace
-			return
+		if p.tokenCurrent.kind == tokenRightBrace {
+			return // Stop at closing brace
 		}
 
-		if p.tokenCurrent.kind == tokenIdentifier {
-			for _, id := range identifiers {
-				if p.tokenCurrent.valueLiteral == id {
-					return // found one of the target idents
-				}
-			}
+		if p.tokenCurrent.kind == tokenIdentifier &&
+			slices.Contains(identifiers, p.tokenCurrent.valueLiteral) {
+			return // Found target identifier
 		}
 
 		p.advanceToken()

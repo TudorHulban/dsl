@@ -7,7 +7,7 @@ type tokenKind int
 const (
 	tokenEOF tokenKind = iota + 1
 	tokenError
-	tokenIdentifier // identifier like 'criteria', 'value', 'my_var'
+	tokenIdentifier // identifier like 'criteria', 'value', 'my_col'
 	tokenCriteria
 	tokenMonitor
 	tokenLevel
@@ -26,13 +26,11 @@ const (
 	_dslMonitor  = "monitor"
 	_dslLevel    = "level"
 	_dslWhen     = "when"
-
-	_dslRightBrace = "}"
 )
 
 // token represents a single token from the input.
 type token struct {
 	kind         tokenKind
-	valueLiteral string // literal value of the token (e.g., "dataset", "my_col", ">=", "100")
+	valueLiteral string // literal value of the token (e.g., "my_col", ">=", "100")
 	pos          scanner.Position
 }

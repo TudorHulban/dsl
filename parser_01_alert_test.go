@@ -1,6 +1,7 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -21,21 +22,37 @@ func TestAlertParsing(t *testing.T) {
 			`
 			reader := strings.NewReader(inputValid)
 
-			config, errs := Parse(reader)
+			ast, errs := Parse(reader)
 
 			require.Empty(t, errs, "should have no parsing errors")
-			require.Len(t, config.Criterias, 1, "should parse criteria")
-			require.Len(t,
-				config.Criterias[0].Monitors,
-				1,
-				"should parse monitor",
+			require.NotEmpty(t,
+				ast.Criterias,
 			)
-
-			rule := config.Criterias[0].Monitors[0].Rules[0]
-			require.Contains(t,
-				rule.Condition.String(),
-				_dslCriteria,
-				"condition should reference threshold",
+			require.Equal(t,
+				"c1",
+				ast.Criterias[0].Name,
+			)
+			require.Len(t,
+				ast.Criterias[0].Monitors,
+				1,
+			)
+			require.Len(t,
+				ast.Criterias[0].Monitors[0].Rules,
+				2,
+			)
+			rule1 := ast.Criterias[0].Monitors[0].Rules[0]
+			require.Regexp(t,
+				regexp.MustCompile(
+					`(?i)(value|5)`,
+				),
+				rule1.Condition.String(),
+			)
+			rule2 := ast.Criterias[0].Monitors[0].Rules[1]
+			require.Regexp(t,
+				regexp.MustCompile(
+					`(?i)(value|10)`,
+				),
+				rule2.Condition.String(),
 			)
 		},
 	)

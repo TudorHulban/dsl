@@ -3,9 +3,6 @@ package main
 // --- Start of DSL ---
 
 // criteria "criteria_name_1" {
-// 	// Optional settings (baselines, increments)
-// 	baseline setting_name = value;
-
 // 	monitor "column_name_a" {
 // 	  level n when condition;
 // 	  // ... more rules for column_a
