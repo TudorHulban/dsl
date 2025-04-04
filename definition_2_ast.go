@@ -1,8 +1,8 @@
 package dslalert
 
 type expression interface {
-	interfaceMarker()
-	String() string
+	interfaceMarker() // added as other types could implement stringers.
+	string() string
 }
 
 var _ expression = &expressionBinary{}

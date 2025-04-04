@@ -7,7 +7,7 @@ type expressionLiteral struct {
 
 func (e *expressionLiteral) interfaceMarker() {}
 
-func (e *expressionLiteral) String() string {
+func (e *expressionLiteral) string() string {
 	return e.raw
 }
 

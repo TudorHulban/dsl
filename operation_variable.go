@@ -7,7 +7,7 @@ type expressionVariable struct {
 
 func (e *expressionVariable) interfaceMarker() {}
 
-func (e *expressionVariable) String() string {
+func (e *expressionVariable) string() string {
 	return e.name
 }
 

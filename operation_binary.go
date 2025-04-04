@@ -10,12 +10,12 @@ type expressionBinary struct {
 
 func (e *expressionBinary) interfaceMarker() {}
 
-func (e *expressionBinary) String() string {
+func (e *expressionBinary) string() string {
 	return fmt.Sprintf(
 		"(%s %s %s)",
 
-		e.LefthandSide.String(),
+		e.LefthandSide.string(),
 		e.Operator,
-		e.RighthandSide.String(),
+		e.RighthandSide.string(),
 	)
 }

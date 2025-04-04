@@ -70,7 +70,7 @@ func TestRuleParsing(t *testing.T) {
 
 			require.Nil(t, p.errors, "should have no errors")
 			require.Equal(t, 1, rule.Level, "level should be 1")
-			require.Contains(t, rule.Condition.String(), "value > 5", "condition mismatch")
+			require.Contains(t, rule.Condition.string(), "value > 5", "condition mismatch")
 		},
 	)
 }

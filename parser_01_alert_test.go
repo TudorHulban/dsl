@@ -48,14 +48,14 @@ func TestAlertParsing(t *testing.T) {
 				regexp.MustCompile(
 					`(?i)(value|5)`,
 				),
-				rule1.Condition.String(),
+				rule1.Condition.string(),
 			)
 			rule2 := ast.Criterias[0].Monitors[0].Rules[1]
 			require.Regexp(t,
 				regexp.MustCompile(
 					`(?i)(value|10)`,
 				),
-				rule2.Condition.String(),
+				rule2.Condition.string(),
 			)
 		},
 	)
@@ -117,14 +117,14 @@ func TestAlertParsing(t *testing.T) {
 				regexp.MustCompile(
 					`(?i).*value.*5.*`,
 				),
-				criteria1Rule1.Condition.String(),
+				criteria1Rule1.Condition.string(),
 			)
 			criteria1Rule2 := ast.Criterias[0].Monitors[0].Rules[1]
 			require.Regexp(t,
 				regexp.MustCompile(
 					`(?i).*value.*10.*`,
 				),
-				criteria1Rule2.Condition.String(),
+				criteria1Rule2.Condition.string(),
 			)
 
 			criteria2Rule1 := ast.Criterias[1].Monitors[0].Rules[0]
@@ -132,14 +132,14 @@ func TestAlertParsing(t *testing.T) {
 				regexp.MustCompile(
 					`(?i).*value.*7.*`,
 				),
-				criteria2Rule1.Condition.String(),
+				criteria2Rule1.Condition.string(),
 			)
 			criteria2Rule2 := ast.Criterias[1].Monitors[0].Rules[1]
 			require.Regexp(t,
 				regexp.MustCompile(
 					`(?i).*value.*9.*`,
 				),
-				criteria2Rule2.Condition.String(),
+				criteria2Rule2.Condition.string(),
 			)
 		},
 	)

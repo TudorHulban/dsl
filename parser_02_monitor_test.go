@@ -126,7 +126,7 @@ func TestMonitorParsing(t *testing.T) {
 			require.Equal(t, "orders", monitor.ColumnName)
 			require.Len(t, monitor.Rules, 2, "should parse both rules")
 			require.Equal(t, 1, monitor.Rules[0].Level)
-			require.Contains(t, monitor.Rules[0].Condition.String(), "value > 5")
+			require.Contains(t, monitor.Rules[0].Condition.string(), "value > 5")
 		},
 	)
 }

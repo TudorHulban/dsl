@@ -35,7 +35,7 @@ func TestOperatorPrecedence(t *testing.T) {
 		func(t *testing.T) {
 			input := "1 + 2 * 3"
 			expr := parseExpr(input) // Helper to parse single expression
-			require.Equal(t, "(1 + (2 * 3))", expr.String())
+			require.Equal(t, "(1 + (2 * 3))", expr.string())
 		},
 	)
 
@@ -44,7 +44,7 @@ func TestOperatorPrecedence(t *testing.T) {
 		func(t *testing.T) {
 			input := "value > threshold + 5"
 			expr := parseExpr(input)
-			require.Equal(t, "(value > (threshold + 5))", expr.String())
+			require.Equal(t, "(value > (threshold + 5))", expr.string())
 		},
 	)
 }
@@ -68,7 +68,7 @@ func TestExpressionParsing(t *testing.T) {
 			binExpr := expr.(*expressionBinary)
 			require.Equal(t,
 				"value",
-				binExpr.LefthandSide.String(),
+				binExpr.LefthandSide.string(),
 			)
 			require.Equal(t,
 				">",
@@ -76,7 +76,7 @@ func TestExpressionParsing(t *testing.T) {
 			)
 			require.Equal(t,
 				"5",
-				binExpr.RighthandSide.String(),
+				binExpr.RighthandSide.string(),
 			)
 		},
 	)
