@@ -31,26 +31,53 @@ type AlertConfiguration struct {
 }
 
 type EvaluationResult struct {
-	RowIndex     int // 0-based index of the data row (1st data row is index 0)
+	ValueCurrent any
+
 	CriteriaName string
 	MonitorName  string
-	RuleLevel    int
-	Message      string // Pre-formatted alert message
+	Row          string
+
+	RowIndex  int
+	RuleLevel int
 }
 
 func (e EvaluationResult) String() string {
 	return fmt.Sprintf(
-		"RowIndex: %d, CriteriaName: %s, MonitorName: %s, RuleLevel: %d, Message: %s",
-
+		"Row %d: %s --> Alert triggered! Level=%d (Value=%v)",
 		e.RowIndex,
-		e.CriteriaName,
-		e.MonitorName,
+		e.Row,
 		e.RuleLevel,
-		e.Message,
+		e.ValueCurrent,
 	)
 }
 
 type EvaluationResults []EvaluationResult
+
+func (results EvaluationResults) LevelMaximum() int {
+	var result int
+
+	for _, r := range results {
+		if r.RuleLevel > result {
+			result = r.RuleLevel
+		}
+	}
+
+	return result
+}
+
+func (results EvaluationResults) Message() string {
+	if len(results) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"Level maximum for criteria %s (monitor %s): %d",
+
+		results[0].CriteriaName,
+		results[0].MonitorName,
+		results.LevelMaximum(),
+	)
+}
 
 func (results EvaluationResults) String() string {
 	var result string
