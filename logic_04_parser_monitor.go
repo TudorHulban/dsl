@@ -1,4 +1,4 @@
-package main
+package dslalert
 
 func (p *Parser) parseMonitor() *Monitor {
 	var result Monitor

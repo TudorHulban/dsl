@@ -1,4 +1,4 @@
-package main
+package dslalert
 
 // --- Start of DSL ---
 

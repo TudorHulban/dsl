@@ -1,4 +1,4 @@
-package main
+package dslalert
 
 func (p *Parser) parseCriteria() *Criteria {
 	var result Criteria

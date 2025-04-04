@@ -1,4 +1,4 @@
-package main
+package dslalert
 
 import "fmt"
 
@@ -8,7 +8,7 @@ type ExpressionBinary struct {
 	RighthandSide Expression
 }
 
-func (e *ExpressionBinary) exprNode() {}
+func (e *ExpressionBinary) interfaceMarker() {}
 
 func (e *ExpressionBinary) String() string {
 	return fmt.Sprintf(

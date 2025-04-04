@@ -1,4 +1,4 @@
-package main
+package dslalert
 
 import (
 	"regexp"
@@ -24,7 +24,10 @@ func TestAlertParsing(t *testing.T) {
 
 			ast, errs := Parse(reader)
 
-			require.Empty(t, errs, "should have no parsing errors")
+			require.Empty(t,
+				errs,
+				"should have no parsing errors",
+			)
 			require.NotEmpty(t,
 				ast.Criterias,
 			)

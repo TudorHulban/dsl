@@ -1,3 +1,5 @@
+github.com/TudorHulban/go-errors v0.0.0-20250328134337-8089e689c00f h1:L1AVDfZANf8l7dPMofRciR1BAqx92Abm0Thwixotf1U=
+github.com/TudorHulban/go-errors v0.0.0-20250328134337-8089e689c00f/go.mod h1:Kgp2ZdTO/L3PJfPam/hyxyreBb1wy+nXCe0+9Xw/M2A=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
