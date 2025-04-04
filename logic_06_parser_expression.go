@@ -2,7 +2,7 @@ package dslalert
 
 import "strconv"
 
-func (p *Parser) currentPrecedence() int {
+func (p *parser) currentPrecedence() int {
 	if p.tokenCurrent.kind != tokenOperator {
 		return 0
 	}
@@ -10,7 +10,7 @@ func (p *Parser) currentPrecedence() int {
 	return p.operatorPrecedence(p.tokenCurrent.valueLiteral)
 }
 
-func (p *Parser) operatorPrecedence(op string) int {
+func (p *parser) operatorPrecedence(op string) int {
 	switch op {
 	case "*", "/":
 		return 5
@@ -24,8 +24,8 @@ func (p *Parser) operatorPrecedence(op string) int {
 	}
 }
 
-func (p *Parser) parseExpression(precedence int) Expression {
-	var left Expression
+func (p *parser) parseExpression(precedence int) expression {
+	var left expression
 
 	switch p.tokenCurrent.kind {
 	case tokenNumber:
@@ -86,7 +86,7 @@ func (p *Parser) parseExpression(precedence int) Expression {
 			return nil
 		}
 
-		left = &ExpressionBinary{
+		left = &expressionBinary{
 			LefthandSide:  left,
 			Operator:      currentOperator,
 			RighthandSide: right,

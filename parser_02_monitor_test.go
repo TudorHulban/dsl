@@ -14,7 +14,7 @@ func TestMonitorParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `monitor "orders" {}`
 
-			p := NewParser(&ParamsNewParser{
+			p := newParser(&paramsNewParser{
 				Lexer:       newLexer(strings.NewReader(input)),
 				IsDebugMode: true,
 			})
@@ -36,8 +36,8 @@ func TestMonitorParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `monitor "orders" { level 1 when value > 5;` // Missing }
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},
@@ -62,8 +62,8 @@ func TestMonitorParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `monitor { level 1 when value > 5; }`
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},
@@ -88,8 +88,8 @@ func TestMonitorParsing(t *testing.T) {
 				level 1 when value > 100;
 			}`
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},
@@ -113,8 +113,8 @@ func TestMonitorParsing(t *testing.T) {
 		}
 		`
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},

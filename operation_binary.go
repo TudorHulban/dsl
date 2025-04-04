@@ -2,15 +2,15 @@ package dslalert
 
 import "fmt"
 
-type ExpressionBinary struct {
+type expressionBinary struct {
 	Operator      string // (e.g., ">=", "<", "+", "==")
-	LefthandSide  Expression
-	RighthandSide Expression
+	LefthandSide  expression
+	RighthandSide expression
 }
 
-func (e *ExpressionBinary) interfaceMarker() {}
+func (e *expressionBinary) interfaceMarker() {}
 
-func (e *ExpressionBinary) String() string {
+func (e *expressionBinary) String() string {
 	return fmt.Sprintf(
 		"(%s %s %s)",
 
@@ -18,12 +18,4 @@ func (e *ExpressionBinary) String() string {
 		e.Operator,
 		e.RighthandSide.String(),
 	)
-}
-
-func newbinaryexpr(lhs Expression, op string, rhs Expression) *ExpressionBinary {
-	return &ExpressionBinary{
-		LefthandSide:  lhs,
-		Operator:      op,
-		RighthandSide: rhs,
-	}
 }

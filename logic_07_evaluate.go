@@ -9,12 +9,12 @@ import (
 	goerrors "github.com/TudorHulban/go-errors"
 )
 
-func evaluateExpression(expr Expression, contextValue float64) (any, error) {
+func evaluateExpression(expr expression, contextValue float64) (any, error) {
 	switch expressionType := expr.(type) {
-	case *ExpressionLiteral:
+	case *expressionLiteral:
 		return expressionType.value, nil // Return literal value
 
-	case *ExpressionVariable:
+	case *expressionVariable:
 		if expressionType.name == "value" {
 			return contextValue, nil // Substitute the special 'value' variable
 		}
@@ -25,7 +25,7 @@ func evaluateExpression(expr Expression, contextValue float64) (any, error) {
 				expressionType.name,
 			)
 
-	case *ExpressionBinary:
+	case *expressionBinary:
 		// Recursively evaluate left and right sides
 		valueLeft, errEvaluateLeft := evaluateExpression(expressionType.LefthandSide, contextValue)
 		if errEvaluateLeft != nil {
@@ -134,7 +134,7 @@ func evaluateExpression(expr Expression, contextValue float64) (any, error) {
 	}
 }
 
-func evaluateCondition(expr Expression, contextValue float64) (bool, error) {
+func evaluateCondition(expr expression, contextValue float64) (bool, error) {
 	result, errEvaluate := evaluateExpression(expr, contextValue)
 	if errEvaluate != nil {
 		return false,
@@ -153,7 +153,7 @@ func evaluateCondition(expr Expression, contextValue float64) (bool, error) {
 	return resultBoolean, nil
 }
 
-func EvaluateCriteria(criteria *Criteria, dataset []string) (EvaluationResults, error) {
+func EvaluateCriteria(criteria *criteria, dataset []string) (EvaluationResults, error) {
 	if criteria == nil {
 		return nil,
 			goerrors.ErrValidation{

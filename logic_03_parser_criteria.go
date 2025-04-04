@@ -1,7 +1,7 @@
 package dslalert
 
-func (p *Parser) parseCriteria() *Criteria {
-	var result Criteria
+func (p *parser) parseCriteria() *criteria {
+	var result criteria
 
 	// 1. Criteria keyword
 	if !p.expectWTokenAdvance(

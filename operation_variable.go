@@ -1,18 +1,18 @@
 package dslalert
 
-// ExpressionVariable represents a variable name (e.g., 'value', 'setting_name', baseline names).
-type ExpressionVariable struct {
+// expressionVariable represents a variable name (e.g., 'value').
+type expressionVariable struct {
 	name string
 }
 
-func (e *ExpressionVariable) interfaceMarker() {}
+func (e *expressionVariable) interfaceMarker() {}
 
-func (e *ExpressionVariable) String() string {
+func (e *expressionVariable) String() string {
 	return e.name
 }
 
-func newVariable(name string) *ExpressionVariable {
-	return &ExpressionVariable{
+func newVariable(name string) *expressionVariable {
+	return &expressionVariable{
 		name: name,
 	}
 }

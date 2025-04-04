@@ -2,8 +2,8 @@ package dslalert
 
 import "strconv"
 
-func (p *Parser) parseRule() *Rule {
-	var result Rule
+func (p *parser) parseRule() *rule {
+	var result rule
 
 	// 1. Level keyword
 	if !p.expectWTokenAdvance(

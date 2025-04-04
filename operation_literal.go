@@ -1,18 +1,18 @@
 package dslalert
 
-type ExpressionLiteral struct {
+type expressionLiteral struct {
 	value any    // use type assertion later (e.g., float64, string)
 	raw   string // original raw string representation
 }
 
-func (e *ExpressionLiteral) interfaceMarker() {}
+func (e *expressionLiteral) interfaceMarker() {}
 
-func (e *ExpressionLiteral) String() string {
+func (e *expressionLiteral) String() string {
 	return e.raw
 }
 
-func newliteral(value any, raw string) *ExpressionLiteral {
-	return &ExpressionLiteral{
+func newliteral(value any, raw string) *expressionLiteral {
+	return &expressionLiteral{
 		value: value,
 		raw:   raw,
 	}

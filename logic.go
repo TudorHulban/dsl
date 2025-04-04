@@ -18,8 +18,8 @@ func Parse(input io.Reader) (*AlertConfiguration, []string) {
 		io.MultiReader(bytes.NewReader(buf), input),
 	)
 
-	p := NewParser(
-		&ParamsNewParser{
+	p := newParser(
+		&paramsNewParser{
 			Lexer: l,
 		},
 	)

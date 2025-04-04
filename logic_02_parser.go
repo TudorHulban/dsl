@@ -6,7 +6,7 @@ import (
 	"slices"
 )
 
-type Parser struct {
+type parser struct {
 	lex *dslLexer
 
 	tokenCurrent token
@@ -17,13 +17,13 @@ type Parser struct {
 	debug bool
 }
 
-type ParamsNewParser struct {
+type paramsNewParser struct {
 	Lexer       *dslLexer
 	IsDebugMode bool
 }
 
-func NewParser(params *ParamsNewParser) *Parser {
-	p := Parser{
+func newParser(params *paramsNewParser) *parser {
+	p := parser{
 		lex:   params.Lexer,
 		debug: params.IsDebugMode,
 	}
@@ -40,19 +40,19 @@ func NewParser(params *ParamsNewParser) *Parser {
 	return &p
 }
 
-func (p *Parser) advanceToken() {
+func (p *parser) advanceToken() {
 	p.tokenCurrent = p.tokenNext
 	p.tokenNext = p.lex.nextToken()
 }
 
-func (p *Parser) logTokenState() {
+func (p *parser) logTokenState() {
 	if p.debug {
 		fmt.Printf("[DEBUG] Current Token: %+v\n", p.tokenCurrent)
 		fmt.Printf("[DEBUG] Next Token:    %+v\n", p.tokenNext)
 	}
 }
 
-func (p *Parser) errorf(format string, args ...any) {
+func (p *parser) errorf(format string, args ...any) {
 	p.errors = append(
 		p.errors,
 
@@ -64,7 +64,7 @@ func (p *Parser) errorf(format string, args ...any) {
 	)
 }
 
-func (p *Parser) tryRecoverAtBlockEnd() {
+func (p *parser) tryRecoverAtBlockEnd() {
 	if !p.currentTokenIs(tokenRightBrace) && !p.currentTokenIs(tokenEOF) {
 		p.advanceToken()
 	}
@@ -75,7 +75,7 @@ type paramsExpect struct {
 	KindExpected tokenKind
 }
 
-func (p *Parser) expectWTokenAdvance(params *paramsExpect) bool {
+func (p *parser) expectWTokenAdvance(params *paramsExpect) bool {
 	if p.tokenCurrent.kind == params.KindExpected {
 		p.advanceToken()
 
@@ -93,7 +93,7 @@ func (p *Parser) expectWTokenAdvance(params *paramsExpect) bool {
 	return false
 }
 
-func (p *Parser) expectNoTokenAdvance(params *paramsExpect) bool {
+func (p *parser) expectNoTokenAdvance(params *paramsExpect) bool {
 	if p.tokenCurrent.kind == params.KindExpected {
 		return true
 	}
@@ -109,7 +109,7 @@ func (p *Parser) expectNoTokenAdvance(params *paramsExpect) bool {
 	return false
 }
 
-func (p *Parser) parserEntrypoint() (*AlertConfiguration, error) {
+func (p *parser) parserEntrypoint() (*AlertConfiguration, error) {
 	var result AlertConfiguration
 
 	for {
@@ -152,7 +152,7 @@ func (p *Parser) parserEntrypoint() (*AlertConfiguration, error) {
 		nil
 }
 
-func (p *Parser) skipToIdentifier(identifiers ...string) {
+func (p *parser) skipToIdentifier(identifiers ...string) {
 	for p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
 		if p.tokenCurrent.kind == tokenIdentifier &&
 			slices.Contains(
@@ -166,7 +166,7 @@ func (p *Parser) skipToIdentifier(identifiers ...string) {
 	}
 }
 
-func (p *Parser) skipToIdentifierRightBrace(identifiers ...string) {
+func (p *parser) skipToIdentifierRightBrace(identifiers ...string) {
 	for p.tokenCurrent.kind != tokenEOF && p.tokenCurrent.kind != tokenError {
 		if p.tokenCurrent.kind == tokenRightBrace {
 			return // Stop at closing brace
@@ -181,6 +181,6 @@ func (p *Parser) skipToIdentifierRightBrace(identifiers ...string) {
 	}
 }
 
-func (p *Parser) currentTokenIs(t tokenKind) bool {
+func (p *parser) currentTokenIs(t tokenKind) bool {
 	return p.tokenCurrent.kind == t
 }

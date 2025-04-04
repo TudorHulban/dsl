@@ -13,8 +13,8 @@ func TestRuleParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `level 1 when value > 5`
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},
@@ -36,8 +36,8 @@ func TestRuleParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `level abc when value > 5;`
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},
@@ -59,8 +59,8 @@ func TestRuleParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := `level 1 when value > 5;`
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},

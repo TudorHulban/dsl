@@ -60,5 +60,9 @@ func TestHowToUse(t *testing.T) {
 			resultsAlert.Message(),
 			resultsAlert,
 		)
+
+		fmt.Println(
+			resultsAlert.Rows(),
+		)
 	}
 }

@@ -1,7 +1,7 @@
 package dslalert
 
-func (p *Parser) parseMonitor() *Monitor {
-	var result Monitor
+func (p *parser) parseMonitor() *monitor {
+	var result monitor
 
 	// 1. Monitor keyword
 	if !p.expectWTokenAdvance(

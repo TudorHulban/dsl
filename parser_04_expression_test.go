@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func parseExpr(input string) Expression {
-	p := NewParser(
-		&ParamsNewParser{
+func parseExpr(input string) expression {
+	p := newParser(
+		&paramsNewParser{
 			Lexer:       newLexer(strings.NewReader(input)),
 			IsDebugMode: true,
 		},
@@ -55,8 +55,8 @@ func TestExpressionParsing(t *testing.T) {
 		func(t *testing.T) {
 			input := "value > 5"
 
-			p := NewParser(
-				&ParamsNewParser{
+			p := newParser(
+				&paramsNewParser{
 					Lexer:       newLexer(strings.NewReader(input)),
 					IsDebugMode: true,
 				},
@@ -64,8 +64,8 @@ func TestExpressionParsing(t *testing.T) {
 
 			expr := p.parseExpression(0)
 
-			require.IsType(t, &ExpressionBinary{}, expr)
-			binExpr := expr.(*ExpressionBinary)
+			require.IsType(t, &expressionBinary{}, expr)
+			binExpr := expr.(*expressionBinary)
 			require.Equal(t,
 				"value",
 				binExpr.LefthandSide.String(),
